@@ -1,16 +1,8 @@
 # IDEs
 .idea/
 
-# Backend
-backend/coverage/
-backend/node_modules/
-backend/dist/
-
 # Environment
-.env
 env
-.env.*
-!env.example
 
 # Documentation
 REQUIREMENTS_COMPLIANCE.md
