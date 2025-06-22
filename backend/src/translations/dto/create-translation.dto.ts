@@ -3,19 +3,23 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 export class CreateTranslationDto {
   @IsString()
   @IsNotEmpty()
-  text: string;
+  originalText: string;
+
+  @IsString()
+  @IsNotEmpty()
+  translatedText: string;
 
   @IsString()
   @IsNotEmpty()
   targetLanguage: string;
 
-  @IsOptional()
   @IsString()
-  sourceLanguage?: string;
+  @IsNotEmpty()
+  sourceLanguage: string;
 
-  @IsOptional()
   @IsString()
-  style?: string;
+  @IsNotEmpty()
+  style: string;
 
   @IsOptional()
   @IsString()

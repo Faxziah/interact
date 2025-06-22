@@ -180,14 +180,14 @@ export default function HomePage() {
             <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
             <div className="absolute inset-0 h-12 w-12 rounded-full bg-violet-200 animate-ping mx-auto opacity-20"></div>
           </div>
-          <p className="text-gray-600 font-medium">Loading Interact...</p>
+          <p className="text-gray-600 font-medium">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50">
+    <div>
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>

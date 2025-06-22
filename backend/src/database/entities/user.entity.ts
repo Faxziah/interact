@@ -19,20 +19,25 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  name: string;
+  @Column({ nullable: true })
+  name?: string;
 
-  @Column()
-  @Exclude()
-  passwordHash: string;
+  @Column({ select: false, nullable: true })
+  password?: string;
 
-  @Column({ default: 'local' })
-  provider: string;
+  @Column({ nullable: true })
+  avatar?: string;
 
-  @CreateDateColumn()
+  @Column({ name: 'reset_password_token', nullable: true })
+  resetPasswordToken?: string;
+
+  @Column({ name: 'reset_password_expires', nullable: true })
+  resetPasswordExpires?: Date;
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
   @OneToMany(() => Translation, (translation) => translation.user)

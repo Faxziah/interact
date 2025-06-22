@@ -3,14 +3,18 @@ import {
   ConflictException,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes, createHash } from 'crypto';
 
 import { User, UserSettings } from '../database/entities';
-import { RegisterDto, LoginDto } from './dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
 
 export interface AuthResponse {
   user: {
@@ -25,7 +29,6 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  provider: string;
   createdAt: Date;
 }
 
@@ -37,6 +40,8 @@ export class AuthService {
     @InjectRepository(UserSettings)
     private readonly userSettingsRepository: Repository<UserSettings>,
     private readonly jwtService: JwtService,
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -45,7 +50,6 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
     const { email, name, password } = registerDto;
 
-    // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
@@ -54,36 +58,22 @@ export class AuthService {
       throw new ConflictException('User with this email already exists');
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
     const user = this.userRepository.create({
       email,
       name,
-      passwordHash,
+      password: hashedPassword,
     });
 
     const savedUser = await this.userRepository.save(user);
 
-    // Create default user settings
     const userSettings = this.userSettingsRepository.create({
       userId: savedUser.id,
     });
     await this.userSettingsRepository.save(userSettings);
 
-    // Generate JWT token
-    const payload = { sub: savedUser.id, email: savedUser.email };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      user: {
-        id: savedUser.id,
-        email: savedUser.email,
-        name: savedUser.name,
-      },
-      accessToken,
-    };
+    return this.generateAuthResponse(savedUser);
   }
 
   /**
@@ -92,34 +82,23 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     const { email, password } = loginDto;
 
-    // Find user by email
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .addSelect('user.password')
+      .getOne();
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT token
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
-      accessToken,
-    };
+    return this.generateAuthResponse(user);
   }
 
   /**
@@ -136,7 +115,6 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      provider: user.provider,
       createdAt: user.createdAt,
     };
   }
@@ -145,16 +123,16 @@ export class AuthService {
    * Validate user for Passport strategy
    */
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .addSelect('user.password')
+      .getOne();
 
-    if (user && (await bcrypt.compare(password, user.passwordHash))) {
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...result } = user;
+      return result;
     }
 
     return null;
@@ -165,5 +143,92 @@ export class AuthService {
    */
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOneBy({ id });
+  }
+
+  /**
+   * Forgot Password
+   */
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+    const { email } = forgotPasswordDto;
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException('User with this email does not exist');
+    }
+
+    // Generate reset token
+    const resetToken = randomBytes(32).toString('hex');
+    const hashedToken = createHash('sha256').update(resetToken).digest('hex');
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+
+    await this.userRepository.save(user);
+
+    // Send email
+    const resetUrl = `${this.configService.get<string>(
+      'FRONTEND_URL',
+    )}/auth/reset-password?token=${resetToken}`;
+    
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Password Reset Request',
+      template: 'reset-password',
+      context: {
+        name: user.name,
+        url: resetUrl,
+      },
+    });
+  }
+
+  /**
+   * Reset Password
+   */
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<AuthResponse> {
+    const { token, password } = resetPasswordDto;
+
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
+    const user = await this.userRepository.findOne({
+      where: {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: MoreThan(new Date()),
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        'Password reset token is invalid or has expired.',
+      );
+    }
+
+    user.password = await bcrypt.hash(password, 12);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await this.userRepository.save(user);
+
+    return this.generateAuthResponse(user);
+  }
+
+  public generateAuthResponse(user: User): AuthResponse {
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      accessToken,
+    };
+  }
+
+  private async sendPasswordResetEmail(user: User, token: string) {
+    const resetLink = `http://localhost:3000/auth/reset-password?token=${token}`;
+    // ... existing code ...
   }
 } 

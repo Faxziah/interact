@@ -40,27 +40,15 @@ export class TranslationsService {
     createTranslationDto: CreateTranslationDto,
     userId: string,
   ): Promise<Translation> {
-    const startTime = Date.now();
-    
-    const translatedText = await this.aiService.translate({
-      text: createTranslationDto.text,
-      sourceLanguage: createTranslationDto.sourceLanguage || 'auto',
-      targetLanguage: createTranslationDto.targetLanguage,
-      style: createTranslationDto.style || 'formal',
-    });
-    
-    const processingTimeMs = Date.now() - startTime;
-
     const translation = this.translationRepository.create({
       userId,
-      originalText: createTranslationDto.text,
-      translatedText,
-      sourceLanguage: createTranslationDto.sourceLanguage || 'auto',
+      originalText: createTranslationDto.originalText,
+      translatedText: createTranslationDto.translatedText,
+      sourceLanguage: createTranslationDto.sourceLanguage,
       targetLanguage: createTranslationDto.targetLanguage,
-      translationStyle: createTranslationDto.style as any || 'formal',
-      aiModelUsed: 'openai-gpt-4',
-      characterCount: createTranslationDto.text.length,
-      processingTimeMs: Date.now() - startTime,
+      translationStyle: createTranslationDto.style,
+      aiModelUsed: 'openai-gpt-4', // This can be adjusted or passed from the client
+      characterCount: createTranslationDto.originalText.length,
     });
 
     return this.translationRepository.save(translation);
