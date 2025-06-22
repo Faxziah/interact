@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import {Model} from "@/database/entities";
 
 export class CreateTranslationDto {
   @IsString()
@@ -23,5 +24,5 @@ export class CreateTranslationDto {
 
   @IsOptional()
   @IsString()
-  aiProvider?: 'openai' | 'groq';
+  aiModelUsed?: Model["value"];
 } 

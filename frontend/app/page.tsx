@@ -29,8 +29,8 @@ interface TranslationResult {
   id: string
   originalText: string
   translatedText: string
-  fromLanguage: string
-  toLanguage: string
+  sourceLanguage: string
+  targetLanguage: string
   style: string
   createdAt: string
 }
@@ -117,6 +117,7 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json()
         setRecentTranslations(data.translations)
+        console.log('data', data)
       }
     } catch (error) {
       console.error("Failed to fetch recent translations:", error)
@@ -439,14 +440,11 @@ export default function HomePage() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">
-                            {languages.find((l: Language) => l.code === translation.fromLanguage)?.name ||
-                              translation.fromLanguage}
+                            {languages.find((l: Language) => l.code === translation.sourceLanguage)?.name ||
+                              translation.sourceLanguage}
                             <ArrowRight className="h-3 w-3 mx-1" />
-                            {languages.find((l: Language) => l.code === translation.toLanguage)?.name ||
-                              translation.toLanguage}
-                          </Badge>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            {translation.style}
+                            {languages.find((l: Language) => l.code === translation.targetLanguage)?.name ||
+                              translation.targetLanguage}
                           </Badge>
                         </div>
                         <span className="text-xs text-gray-500 font-medium">

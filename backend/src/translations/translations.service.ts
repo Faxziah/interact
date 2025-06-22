@@ -6,7 +6,6 @@ import { Language } from '../database/entities/language.entity';
 import { TranslationStyle } from '../database/entities/translation-style.entity';
 import { AiService } from '../ai/ai.service';
 import { CreateTranslationDto } from './dto/create-translation.dto';
-import { UserSettings } from '../database/entities';
 
 @Injectable()
 export class TranslationsService {
@@ -47,7 +46,7 @@ export class TranslationsService {
       sourceLanguage: createTranslationDto.sourceLanguage,
       targetLanguage: createTranslationDto.targetLanguage,
       translationStyle: createTranslationDto.style,
-      aiModelUsed: 'openai-gpt-4', // This can be adjusted or passed from the client
+      aiModelUsed: createTranslationDto.aiModelUsed || 'groq-llama3',
       characterCount: createTranslationDto.originalText.length,
     });
 

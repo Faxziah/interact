@@ -58,11 +58,4 @@ export class Translation {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
-
-  constructor(partial: Partial<Translation>) {
-    Object.assign(this, partial);
-    if (this.originalText) {
-      this.characterCount = this.originalText.length;
-    }
-  }
 } 
