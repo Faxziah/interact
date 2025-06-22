@@ -37,6 +37,8 @@ services:
       target: ${NODE_ENV:-development}
     container_name: interact-backend
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3001}

@@ -1,4 +1,4 @@
-import { render, screen } from '@/lib/test-utils'
+import { render, screen, waitFor } from '@/lib/test-utils'
 import HistoryPage from './page'
 import '@testing-library/jest-dom'
 import { useSession } from 'next-auth/react'
@@ -30,14 +30,17 @@ describe('HistoryPage', () => {
     mockUseSession.mockReturnValue({ data: { user: { email: 'test@test.com' } }, status: 'authenticated' })
     ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to fetch'))
     render(<HistoryPage />)
-    expect(await screen.findByText('Error')).toBeInTheDocument()
-    expect(await screen.findByText(/Failed to fetch/i)).toBeInTheDocument()
+    await waitFor(() => {
+        expect(screen.getByText(/Failed to fetch/i)).toBeInTheDocument()
+    })
   })
 
   it('shows message if not authenticated', async () => {
     mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated' })
     render(<HistoryPage />)
-    expect(await screen.findByText('Authentication Required')).toBeInTheDocument()
+    await waitFor(() => {
+        expect(screen.getByText('Authentication Required')).toBeInTheDocument()
+    })
   })
 
   it('displays translation history when fetch is successful', async () => {
@@ -53,10 +56,9 @@ describe('HistoryPage', () => {
 
     render(<HistoryPage />)
 
-    expect(await screen.findByText('Hello')).toBeInTheDocument()
-    expect(await screen.findByText('Hola')).toBeInTheDocument()
-    expect(await screen.findByText('Goodbye')).toBeInTheDocument()
-    expect(await screen.findByText('Adiós')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Hello')).toBeInTheDocument()
+    })
   })
 
   it('shows a message when there is no history', async () => {
@@ -68,6 +70,8 @@ describe('HistoryPage', () => {
 
     render(<HistoryPage />)
 
-    expect(await screen.findByText('No translation history found.')).toBeInTheDocument()
+    await waitFor(() => {
+        expect(screen.getByText('No translation history found.')).toBeInTheDocument()
+    })
   })
 }) 

@@ -1,6 +1,6 @@
-# Interact - AI Translator
+# Interact
 
-Interact is a modern, production-ready web application for AI-powered text translation. It's built with a NestJS backend, Next.js frontend, and is fully containerized with Docker. Key features include user authentication, translation history, and multiple AI provider support (OpenAI & Groq).
+Interact is a modern, web application for AI-powered text translation. It's built with a NestJS backend, Next.js frontend, and is fully containerized with Docker. Key features include user authentication, translation history, and multiple AI provider support (OpenAI & Groq).
 
 ## ✨ Features
 
@@ -29,10 +29,10 @@ cd interact
 Copy the example environment file and add your AI API key.
 
 ```bash
-cp env.example .env
+cp /backend/env.example /backend/.env
 ```
 
-Now, open the `.env` file and add your API key for either Groq (free, recommended for testing) or OpenAI.
+Now, open the `/backend/.env` file and add your API key for either Groq (free, recommended for testing) or OpenAI.
 
 ```env
 # in .env file
