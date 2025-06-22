@@ -154,7 +154,7 @@ export default function HomePage() {
         },
         body: JSON.stringify({
           text: inputText,
-          fromLanguage: fromLanguage === "auto" ? undefined : fromLanguage,
+          fromLanguage: fromLanguage,
           toLanguage,
           style: translationStyle,
         }),
@@ -441,7 +441,9 @@ export default function HomePage() {
                         <div className="flex items-center space-x-3">
                           <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">
                             {languages.find((l: Language) => l.code === translation.sourceLanguage)?.name ||
-                              translation.sourceLanguage}
+                              (translation.sourceLanguage === "auto"
+                                ? "Auto"
+                                : translation.sourceLanguage)}
                             <ArrowRight className="h-3 w-3 mx-1" />
                             {languages.find((l: Language) => l.code === translation.targetLanguage)?.name ||
                               translation.targetLanguage}

@@ -10,22 +10,9 @@ import {router} from "next/client";
 export function Header() {
   const { data: session } = useSession()
 
-  const mainNav = (
-    <>
-      <Link href="/history" className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-        <History className="h-4 w-4 mr-2" />
-        History
-      </Link>
-      <Link href="/settings" className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-        <Settings className="h-4 w-4 mr-2" />
-        Settings
-      </Link>
-    </>
-  )
-
   return (
     <header className="relative border-b border-white/20 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
 
         <Link href="/">
         <div className="flex items-center space-x-3">
@@ -50,17 +37,17 @@ export function Header() {
             <>
               <Link href="/history">
                 <Button variant="ghost" size="sm" className="hover:bg-violet-100 transition-colors">
-                  <History className="h-4 w-4 mr-2" />
-                  History
+                  <History className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">History</span>
                 </Button>
               </Link>
               <Link href="/settings">
                 <Button variant="ghost" size="sm" className="hover:bg-violet-100 transition-colors">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
+                  <Settings className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Settings</span>
                 </Button>
               </Link>
-              <div className="hidden sm:flex items-center space-x-2 px-3 py-2 bg-white/50 rounded-full border border-white/20">
+              <div className="hidden md:flex items-center space-x-2 px-3 py-2 bg-white/50 rounded-full border border-white/20">
                 <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-blue-500 rounded-full flex items-center justify-center">
                   <User className="h-3 w-3 text-white" />
                 </div>
@@ -82,13 +69,13 @@ export function Header() {
                 onClick={() => redirect('/auth/signin')}
                 className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                 <LogIn className="h-4 w-4 mr-2" />
-                Sign In
+                <span className="hidden sm:inline">Sign In</span>
               </Button>
               <Button
                 onClick={() => redirect('/auth/signup')}
                 className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                 <User className="h-4 w-4 mr-2" />
-                Sign Up
+                <span className="hidden sm:inline">Sign Up</span>
               </Button>
             </>
           )}
