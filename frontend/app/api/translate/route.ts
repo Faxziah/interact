@@ -65,14 +65,16 @@ export async function POST(request: NextRequest) {
     let translatedText: string
     try {
       console.log("Attempting to get translation from AI service...")
-      const { text: aiResult } = await generateText({
+      const result = await generateText({
         model: groq("llama3-70b-8192"),
         system: systemPrompt,
         prompt: text,
         maxTokens: 2000,
         temperature: style === "creative" ? 0.7 : 0.3,
       })
-      translatedText = aiResult
+
+      console.log('result', result)
+      translatedText = result.text
       console.log("Successfully got translation from AI service.")
     } catch (aiError) {
       console.error("Error calling AI service:", aiError)

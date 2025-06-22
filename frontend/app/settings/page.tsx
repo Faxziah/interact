@@ -21,56 +21,68 @@ interface UserSettings {
   emailNotifications?: boolean;
 }
 
-const LANGUAGES = [
-  { code: 'auto', name: 'Auto Detect' },
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'ru', name: 'Russian' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'zh', name: 'Chinese' },
-];
+interface Language {
+  code: string;
+  name: string;
+}
 
-const STYLES = [
-  { value: 'formal', label: 'Formal' },
-  { value: 'casual', label: 'Casual' },
-  { value: 'technical', label: 'Technical' },
-  { value: 'creative', label: 'Creative' },
-];
+interface TranslationStyle {
+  value: string;
+  label: string;
+}
 
-const MODELS = [
-  { value: 'groq-llama3', label: 'Groq Llama3', disabled: false },
-  { value: 'openai-gpt-4', label: 'OpenAI GPT-4', disabled: true },
-  { value: 'openai-gpt-3.5', label: 'OpenAI GPT-3.5', disabled: true },
-];
+interface Model {
+  value: string;
+  label:string;
+  disabled: boolean;
+}
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const { toast } = useToast()
   const [settings, setSettings] = useState<UserSettings>({})
+  const [languages, setLanguages] = useState<Language[]>([])
+  const [styles, setStyles] = useState<TranslationStyle[]>([])
+  const [models, setModels] = useState<Model[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'authenticated') {
-      const fetchSettings = async () => {
+      const fetchInitialData = async () => {
         setIsLoading(true);
         setError(null);
         try {
-          const response = await fetch('/api/users/settings')
-          if (!response.ok) throw new Error('Failed to fetch settings')
-          const data = await response.json()
-          setSettings(data)
+          const [settingsRes, languagesRes, stylesRes, modelsRes] = await Promise.all([
+            fetch('/api/users/settings'),
+            fetch('/api/languages'),
+            fetch('/api/translation-styles'),
+            fetch('/api/models')
+          ]);
+
+          if (!settingsRes.ok) throw new Error('Failed to fetch settings');
+          if (!languagesRes.ok) throw new Error('Failed to fetch languages');
+          if (!stylesRes.ok) throw new Error('Failed to fetch styles');
+          if (!modelsRes.ok) throw new Error('Failed to fetch models');
+
+          const settingsData = await settingsRes.json();
+          const languagesData = await languagesRes.json();
+          const stylesData = await stylesRes.json();
+          const modelsData = await modelsRes.json();
+          
+          setSettings(settingsData);
+          setLanguages([{ code: 'auto', name: 'Auto Detect' }, ...languagesData]);
+          setStyles(stylesData);
+          setModels(modelsData);
+
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'An unknown error occurred')
+          setError(err instanceof Error ? err.message : 'An unknown error occurred');
         } finally {
-          setIsLoading(false)
+          setIsLoading(false);
         }
-      }
-      fetchSettings()
+      };
+      fetchInitialData();
     } else if (status === 'unauthenticated') {
       setIsLoading(false)
     }
@@ -178,7 +190,7 @@ export default function SettingsPage() {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                {MODELS.map(model => (
+                {models.map(model => (
                   <SelectItem key={model.value} value={model.value} disabled={model.disabled}>
                     {model.label}
                     {model.disabled && <span className="text-muted-foreground ml-2">(available soon)</span>}
@@ -194,7 +206,7 @@ export default function SettingsPage() {
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
               <SelectContent>
-                {LANGUAGES.map(lang => (
+                {languages.map(lang => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -207,7 +219,7 @@ export default function SettingsPage() {
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
               <SelectContent>
-                {LANGUAGES.filter(lang => lang.code !== 'auto').map(lang => (
+                {languages.filter(lang => lang.code !== 'auto').map(lang => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -220,7 +232,7 @@ export default function SettingsPage() {
                 <SelectValue placeholder="Select a style" />
               </SelectTrigger>
               <SelectContent>
-                {STYLES.map(style => (
+                {styles.map(style => (
                   <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
                 ))}
               </SelectContent>

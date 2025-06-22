@@ -70,6 +70,20 @@ export class Init1750610878653 implements MigrationInterface {
             )
         `);
 
+        // Create models table
+        await queryRunner.query(`
+            CREATE TABLE IF NOT EXISTS "models" (
+                "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+                "value" character varying(50) NOT NULL,
+                "label" character varying(100) NOT NULL,
+                "disabled" boolean NOT NULL DEFAULT false,
+                "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                CONSTRAINT "UQ_models_value" UNIQUE ("value"),
+                CONSTRAINT "PK_models" PRIMARY KEY ("id")
+            )
+        `);
+
         // Create translations table
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "translations" (
@@ -117,7 +131,6 @@ export class Init1750610878653 implements MigrationInterface {
             ('pt', 'Portuguese', 'Português', 6),
             ('ru', 'Russian', 'Русский', 7),
             ('ja', 'Japanese', '日本語', 8),
-            ('ko', 'Korean', '한국어', 9),
             ('zh', 'Chinese', '中文', 10),
             ('ar', 'Arabic', 'العربية', 11),
             ('hi', 'Hindi', 'हिन्दी', 12)
@@ -133,10 +146,20 @@ export class Init1750610878653 implements MigrationInterface {
             ('creative', 'Creative', 'Creative and expressive style', 4)
             ON CONFLICT (value) DO NOTHING
         `);
+
+        // Insert default models
+        await queryRunner.query(`
+            INSERT INTO "models" ("value", "label", "disabled") VALUES
+            ('groq-llama3', 'Groq Llama3', false),
+            ('openai-gpt-4', 'OpenAI GPT-4', true),
+            ('openai-gpt-3.5', 'OpenAI GPT-3.5', true)
+            ON CONFLICT (value) DO NOTHING
+        `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`DROP TABLE IF EXISTS "translations"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "models"`);
         await queryRunner.query(`DROP TABLE IF EXISTS "translation_styles"`);
         await queryRunner.query(`DROP TABLE IF EXISTS "languages"`);
         await queryRunner.query(`DROP TABLE IF EXISTS "user_settings"`);

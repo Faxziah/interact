@@ -7,10 +7,13 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { User, Translation, UserSettings, Language, TranslationStyle } from './database/entities';
+import { User, Translation, UserSettings, Language, TranslationStyle, Model } from './database/entities';
 import { UsersModule } from './users/users.module';
 import { AiModule } from './ai/ai.module';
 import { TranslationsModule } from './translations/translations.module';
+import { ModelsModule } from './models/models.module';
+import { LanguagesModule } from './languages/languages.module';
+import { TranslationStylesModule } from './translation-styles/translation-styles.module';
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { TranslationsModule } from './translations/translations.module';
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
-        entities: [User, Translation, UserSettings, Language, TranslationStyle],
+        entities: [User, Translation, UserSettings, Language, TranslationStyle, Model],
         synchronize: configService.get<string>('NODE_ENV') === 'development',
         logging: configService.get<string>('NODE_ENV') === 'development',
         ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
@@ -56,6 +59,9 @@ import { TranslationsModule } from './translations/translations.module';
     UsersModule,
     AiModule,
     TranslationsModule,
+    ModelsModule,
+    LanguagesModule,
+    TranslationStylesModule,
   ],
   providers: [
     {
