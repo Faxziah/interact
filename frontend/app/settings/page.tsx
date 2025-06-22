@@ -13,21 +13,38 @@ import { Terminal } from 'lucide-react'
 
 interface UserSettings {
   defaultModel?: string;
-  defaultSourceLang?: string;
-  defaultTargetLang?: string;
-  defaultStyle?: string;
+  defaultSourceLanguage?: string;
+  defaultTargetLanguage?: string;
+  defaultTranslationStyle?: string;
+  autoSaveTranslations?: boolean;
+  autoDetectLanguage?: boolean;
+  emailNotifications?: boolean;
 }
 
 const LANGUAGES = [
+  { code: 'auto', name: 'Auto Detect' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
   { code: 'ru', name: 'Russian' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'zh', name: 'Chinese' },
 ];
 
-const STYLES = ['Formal', 'Casual', 'Technical'];
-const MODELS = ['gpt-4', 'gpt-3.5-turbo', 'groq-llama3'];
+const STYLES = [
+  { value: 'formal', label: 'Formal' },
+  { value: 'casual', label: 'Casual' },
+  { value: 'technical', label: 'Technical' },
+  { value: 'creative', label: 'Creative' },
+];
+
+const MODELS = [
+  { value: 'groq-llama3', label: 'Groq Llama3', disabled: false },
+  { value: 'openai-gpt-4', label: 'OpenAI GPT-4', disabled: true },
+  { value: 'openai-gpt-3.5', label: 'OpenAI GPT-3.5', disabled: true },
+];
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -62,10 +79,30 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      const {
+        defaultModel,
+        defaultSourceLanguage,
+        defaultTargetLanguage,
+        defaultTranslationStyle,
+        autoSaveTranslations,
+        autoDetectLanguage,
+        emailNotifications,
+      } = settings;
+
+      const payload = {
+        defaultModel,
+        defaultSourceLanguage,
+        defaultTargetLanguage,
+        defaultTranslationStyle,
+        autoSaveTranslations,
+        autoDetectLanguage,
+        emailNotifications,
+      };
+
       const response = await fetch('/api/users/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       })
       if (!response.ok) throw new Error('Failed to save settings')
       toast({ title: 'Success', description: 'Settings saved successfully.' })
@@ -141,40 +178,51 @@ export default function SettingsPage() {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                {MODELS.map(model => <SelectItem key={model} value={model}>{model}</SelectItem>)}
+                {MODELS.map(model => (
+                  <SelectItem key={model.value} value={model.value} disabled={model.disabled}>
+                    {model.label}
+                    {model.disabled && <span className="text-muted-foreground ml-2">(available soon)</span>}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="source-lang">Default Source Language</Label>
-             <Select value={settings.defaultSourceLang} onValueChange={handleSelectChange('defaultSourceLang')}>
+             <Select value={settings.defaultSourceLanguage} onValueChange={handleSelectChange('defaultSourceLanguage')}>
               <SelectTrigger id="source-lang">
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
               <SelectContent>
-                {LANGUAGES.map(lang => <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>)}
+                {LANGUAGES.map(lang => (
+                  <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
            <div className="space-y-2">
             <Label htmlFor="target-lang">Default Target Language</Label>
-             <Select value={settings.defaultTargetLang} onValueChange={handleSelectChange('defaultTargetLang')}>
+             <Select value={settings.defaultTargetLanguage} onValueChange={handleSelectChange('defaultTargetLanguage')}>
               <SelectTrigger id="target-lang">
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
               <SelectContent>
-                {LANGUAGES.map(lang => <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>)}
+                {LANGUAGES.filter(lang => lang.code !== 'auto').map(lang => (
+                  <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="default-style">Default Style</Label>
-            <Select value={settings.defaultStyle} onValueChange={handleSelectChange('defaultStyle')}>
+            <Select value={settings.defaultTranslationStyle} onValueChange={handleSelectChange('defaultTranslationStyle')}>
               <SelectTrigger id="default-style">
                 <SelectValue placeholder="Select a style" />
               </SelectTrigger>
               <SelectContent>
-                {STYLES.map(style => <SelectItem key={style} value={style}>{style}</SelectItem>)}
+                {STYLES.map(style => (
+                  <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

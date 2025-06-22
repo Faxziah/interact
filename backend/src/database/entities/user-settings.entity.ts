@@ -23,7 +23,7 @@ export class UserSettings {
     type: 'varchar',
     length: 50,
     nullable: true,
-    default: 'en',
+    default: 'auto',
   })
   defaultSourceLanguage: string;
 
@@ -31,7 +31,7 @@ export class UserSettings {
     type: 'varchar',
     length: 50,
     nullable: true,
-    default: 'es',
+    default: 'en',
   })
   defaultTargetLanguage: string;
 
@@ -41,6 +41,14 @@ export class UserSettings {
     default: 'formal',
   })
   defaultTranslationStyle: string;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    default: 'groq-llama3',
+  })
+  defaultModel: string;
 
   @Column({ type: 'boolean', default: true })
   autoSaveTranslations: boolean;

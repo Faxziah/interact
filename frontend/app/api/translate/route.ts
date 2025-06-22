@@ -21,7 +21,33 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = translateSchema.parse(body)
-    const { text, fromLanguage, toLanguage, style } = validatedData
+    let { text, fromLanguage, toLanguage, style } = validatedData
+
+    // Get user settings to apply defaults
+    try {
+      const settingsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/settings`, {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      })
+      
+      if (settingsResponse.ok) {
+        const settings = await settingsResponse.json()
+        
+        // Apply defaults if not provided
+        if (!fromLanguage && settings.defaultSourceLanguage) {
+          fromLanguage = settings.defaultSourceLanguage
+        }
+        if (!toLanguage && settings.defaultTargetLanguage) {
+          toLanguage = settings.defaultTargetLanguage
+        }
+        if (style === "formal" && settings.defaultTranslationStyle) {
+          style = settings.defaultTranslationStyle
+        }
+      }
+    } catch (settingsError) {
+      console.warn("Could not fetch user settings, using provided values:", settingsError)
+    }
 
     const stylePrompts = {
       formal: "Translate the following text in a formal, professional tone.",
@@ -31,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const systemPrompt = `You are a professional translator. ${stylePrompts[style]}
-    ${fromLanguage ? `The source language is ${fromLanguage}.` : "Detect the source language automatically."}
+    ${fromLanguage && fromLanguage !== 'auto' ? `The source language is ${fromLanguage}.` : "Detect the source language automatically."}
     The target language is ${toLanguage}.
     Provide only the translation without any additional commentary or explanation.
     Maintain the original formatting and structure of the text.`

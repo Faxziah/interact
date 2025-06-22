@@ -14,6 +14,18 @@ export class UpdateUserSettingsDto {
   defaultTranslationStyle?: string;
 
   @IsOptional()
+  @IsString()
+  defaultModel?: string;
+
+  @IsOptional()
   @IsBoolean()
   autoSaveTranslations?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  autoDetectLanguage?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  emailNotifications?: boolean;
 } 

@@ -33,7 +33,7 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('AI Translator API')
+    .setTitle('Interact AI API')
     .setDescription('Production-ready API for AI-powered text translation')
     .setVersion('1.0')
     .addBearerAuth()

@@ -50,6 +50,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      setIsLoadingData(true)
       await Promise.all([
         fetchLanguages(),
         fetchTranslationStyles(),
@@ -59,6 +60,31 @@ export default function HomePage() {
     }
 
     loadInitialData()
+  }, [session])
+
+  useEffect(() => {
+    if (session) {
+      const fetchUserSettings = async () => {
+        try {
+          const response = await fetch('/api/users/settings')
+          if (response.ok) {
+            const settings = await response.json()
+            if (settings.defaultSourceLanguage) {
+              setFromLanguage(settings.defaultSourceLanguage)
+            }
+            if (settings.defaultTargetLanguage) {
+              setToLanguage(settings.defaultTargetLanguage)
+            }
+            if (settings.defaultTranslationStyle) {
+              setTranslationStyle(settings.defaultTranslationStyle)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch user settings:', error)
+        }
+      }
+      fetchUserSettings()
+    }
   }, [session])
 
   const fetchLanguages = async () => {
