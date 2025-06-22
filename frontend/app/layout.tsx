@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 ${inter.className}`}>
         <Providers>
           <div className="relative flex min-h-screen flex-col">
             <Header />

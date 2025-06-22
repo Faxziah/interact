@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useSession, signIn, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Languages, History, Settings, LogOut, User } from "lucide-react"
+import { Languages, History, Settings, LogOut, User, Sparkles } from "lucide-react"
 import { MobileNav } from "@/components/ui/mobile-nav"
 import { Sheet } from "@/components/ui/sheet"
 
@@ -24,58 +24,67 @@ export function Header() {
   )
 
   return (
-    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-6">
-          <Link href="/" className="flex items-center space-x-2">
-            <Languages className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900 hidden sm:block">Interact</h1>
-          </Link>
-          <nav className="hidden md:flex items-center space-x-6">
-            {session && mainNav}
-          </nav>
+    <header className="relative border-b border-white/20 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+    <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="relative">
+          <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Languages className="h-6 w-6 text-white" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+            <Sparkles className="h-2 w-2 text-white" />
+          </div>
         </div>
-
-        <div className="flex items-center space-x-4">
-          {session ? (
-            <>
-              <div className="hidden items-center space-x-2 md:flex">
-                <User className="h-4 w-4" />
-                <span className="text-sm text-gray-600">{session.user?.email}</span>
-              </div>
-              <Button onClick={() => signOut()} variant="outline" size="sm" className="hidden md:flex">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => signIn()} variant="default">
-              Sign In
-            </Button>
-          )}
-          <MobileNav>
-            {session ? (
-              <div className="flex flex-col space-y-4">
-                {mainNav}
-                 <div className="border-t pt-4">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm text-gray-600">{session.user?.email}</span>
-                  </div>
-                  <Button onClick={() => signOut()} variant="outline" className="w-full">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </div>
-            ) : (
-               <Button onClick={() => signIn()} variant="default" className="w-full">
-                Sign In
-              </Button>
-            )}
-          </MobileNav>
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+            Interact
+          </h1>
+          <p className="text-xs text-gray-500 font-medium">AI Translation</p>
         </div>
       </div>
-    </header>
+
+      <div className="flex items-center space-x-3">
+        {session ? (
+          <>
+            <Link href="/history">
+              <Button variant="ghost" size="sm" className="hover:bg-violet-100 transition-colors">
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="ghost" size="sm" className="hover:bg-violet-100 transition-colors">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
+            <div className="hidden sm:flex items-center space-x-2 px-3 py-2 bg-white/50 rounded-full border border-white/20">
+              <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-blue-500 rounded-full flex items-center justify-center">
+                <User className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-sm text-gray-700 font-medium">{session.user?.email?.split("@")[0]}</span>
+            </div>
+            <Button
+              onClick={() => signOut()}
+              variant="outline"
+              size="sm"
+              className="bg-white/50 border-white/20 hover:bg-white/70 transition-colors"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={() => signIn()}
+            className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <User className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
+        )}
+      </div>
+    </div>
+  </header>
   )
 } 
