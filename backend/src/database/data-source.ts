@@ -1,19 +1,26 @@
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { User, Translation, UserSettings } from './entities';
-
-const configService = new ConfigService();
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { User } from './entities/user.entity';
+import { Translation } from './entities/translation.entity';
+import { Language } from './entities/language.entity';
+import { TranslationStyle } from './entities/translation-style.entity';
+import { UserSettings } from './entities/user-settings.entity';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: configService.get<string>('POSTGRES_HOST', 'localhost'),
-  port: configService.get<number>('POSTGRES_PORT', 5432),
-  username: configService.get<string>('POSTGRES_USER'),
-  password: configService.get<string>('POSTGRES_PASSWORD'),
-  database: configService.get<string>('POSTGRES_DB'),
-  entities: [User, Translation, UserSettings],
+  host: process.env.POSTGRES_HOST,
+  port: parseInt(process.env.POSTGRES_PORT, 10),
+  username: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+  database: process.env.POSTGRES_DB,
+  entities: [User, Translation, UserSettings, Language, TranslationStyle],
   migrations: ['dist/database/migrations/*.js'],
-  synchronize: configService.get<string>('NODE_ENV') === 'development',
-  logging: configService.get<string>('NODE_ENV') === 'development',
-  ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
-}); 
+  synchronize: process.env.NODE_ENV === 'development',
+  logging: process.env.NODE_ENV === 'development',
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
+  namingStrategy: new SnakeNamingStrategy(),
+});

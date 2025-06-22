@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialMigration1735238400000 implements MigrationInterface {
-    name = 'InitialMigration1735238400000'
+export class Init1750610878653 implements MigrationInterface {
+    name = 'Init1750610878653'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Create users table
@@ -79,30 +79,28 @@ export class InitialMigration1735238400000 implements MigrationInterface {
                 "from_language" character varying(10) NOT NULL,
                 "to_language" character varying(10) NOT NULL,
                 "style" character varying(20) NOT NULL DEFAULT 'formal',
-                "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_aca248c72ae1fb2390f1bf4cd87" PRIMARY KEY ("id")
             )
         `);
 
         // Add foreign keys
         await queryRunner.query(`
-            ALTER TABLE "user_settings" 
-            ADD CONSTRAINT "FK_986a2b6d3c05eb4091bb8066f78" 
+            ALTER TABLE "user_settings"
+            ADD CONSTRAINT "FK_986a2b6d3c05eb4091bb8066f78"
             FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
 
         await queryRunner.query(`
-            ALTER TABLE "translations" 
-            ADD CONSTRAINT "FK_translations_user_id" 
+            ALTER TABLE "translations"
+            ADD CONSTRAINT "FK_translations_user_id"
             FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
 
         // Create indexes
         await queryRunner.query(`CREATE INDEX "idx_translations_user_id" ON "translations" ("user_id")`);
-        await queryRunner.query(`CREATE INDEX "idx_translations_created_at" ON "translations" ("created_at")`);
         await queryRunner.query(`CREATE INDEX "idx_users_email" ON "users" ("email")`);
 
-        // Insert default languages
+        // // Insert default languages
         await queryRunner.query(`
             INSERT INTO "languages" ("code", "name", "native_name", "sort_order") VALUES
             ('en', 'English', 'English', 1),
@@ -132,15 +130,10 @@ export class InitialMigration1735238400000 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "translations" DROP CONSTRAINT "FK_translations_user_id"`);
-        await queryRunner.query(`ALTER TABLE "user_settings" DROP CONSTRAINT "FK_986a2b6d3c05eb4091bb8066f78"`);
-        await queryRunner.query(`DROP INDEX "idx_users_email"`);
-        await queryRunner.query(`DROP INDEX "idx_translations_created_at"`);
-        await queryRunner.query(`DROP INDEX "idx_translations_user_id"`);
-        await queryRunner.query(`DROP TABLE "translations"`);
-        await queryRunner.query(`DROP TABLE "translation_styles"`);
-        await queryRunner.query(`DROP TABLE "languages"`);
-        await queryRunner.query(`DROP TABLE "user_settings"`);
-        await queryRunner.query(`DROP TABLE "users"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "translations"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "translation_styles"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "languages"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "user_settings"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
     }
-} 
+}
