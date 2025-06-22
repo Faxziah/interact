@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: interact-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-interact}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - interact-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # Backend API (NestJS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: ${NODE_ENV:-development}
+    container_name: interact-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3001}
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-interact}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60}
+      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-10}
+    ports:
+      - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - interact-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${BACKEND_PORT:-3001}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: ${NODE_ENV:-development}
+    container_name: interact-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - interact-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  interact-network:
+    driver: bridge 
