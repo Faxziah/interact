@@ -40,27 +40,38 @@ describe('SettingsPage', () => {
   })
 
   it('fetches and displays settings', async () => {
-    const settings = { defaultModel: 'gpt-4', defaultSourceLang: 'en' }
+    const settings = { defaultModel: 'gpt-4', defaultSourceLanguage: 'en' }
+    const languages = [{ code: 'en', name: 'English' }, { code: 'es', name: 'Spanish' }]
+    const styles = [{ value: 'formal', label: 'Formal' }]
+    const models = [{ value: 'gpt-4', label: 'GPT-4', disabled: false }, { value: 'groq-llama3', label: 'Groq Llama3', disabled: false }]
+
     mockUseSession.mockReturnValue({ status: 'authenticated' })
-    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(settings),
-    })
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(settings) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(languages) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(styles) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(models) })
+      
     render(<SettingsPage />)
-    expect(await screen.findByText('gpt-4')).toBeInTheDocument()
+    expect(await screen.findByText('GPT-4')).toBeInTheDocument()
     expect(await screen.findByText('English')).toBeInTheDocument()
   })
 
   it('updates a setting and saves it', async () => {
     const settings = { defaultModel: 'gpt-4' }
+    const languages = [{ code: 'en', name: 'English' }, { code: 'es', name: 'Spanish' }]
+    const styles = [{ value: 'formal', label: 'Formal' }]
+    const models = [{ value: 'gpt-4', label: 'GPT-4', disabled: false }, { value: 'groq-llama3', label: 'Groq Llama3', disabled: false }]
+    
     mockUseSession.mockReturnValue({ status: 'authenticated' })
     // First fetch for loading settings
-    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(settings),
-    });
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(settings) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(languages) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(styles) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(models) })
     // Second fetch for saving
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({}),
     });
@@ -69,12 +80,12 @@ describe('SettingsPage', () => {
     
     const modelSelect = await screen.findByRole('combobox', { name: /default model/i })
     fireEvent.click(modelSelect)
-    fireEvent.click(await screen.findByText('groq-llama3'))
+    fireEvent.click(await screen.findByText('Groq Llama3'))
 
     const saveButton = screen.getByRole('button', { name: /save changes/i })
     fireEvent.click(saveButton)
 
-    await screen.findByText('Saving...') // Wait for saving state
+    await screen.findByText(/Saving.../i) // Wait for saving state
     
     expect(global.fetch).toHaveBeenCalledWith('/api/users/settings', {
       method: 'PATCH',
@@ -82,7 +93,7 @@ describe('SettingsPage', () => {
       body: JSON.stringify({ defaultModel: 'groq-llama3' }),
     })
     
-    await screen.findByText('Save Changes') // Wait for saving to finish
+    await screen.findByText(/Save Changes/i) // Wait for saving to finish
     expect(mockToast).toHaveBeenCalledWith({
       title: 'Success',
       description: 'Settings saved successfully.',

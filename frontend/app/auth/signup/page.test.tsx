@@ -13,6 +13,7 @@ jest.mock('next-auth/react', () => ({
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
     push: jest.fn(),
+    refresh: jest.fn(),
   })),
 }))
 
@@ -36,7 +37,7 @@ describe('SignUpPage', () => {
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-    const signUpButton = screen.getByRole('button', { name: /sign up/i })
+    const signUpButton = screen.getByRole('button', { name: /create an account/i })
     expect(signUpButton).toBeInTheDocument()
 
     // Simulate user input
@@ -49,7 +50,7 @@ describe('SignUpPage', () => {
     
     // Check if fetch was called for registration
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/auth/register', {
+      expect(global.fetch).toHaveBeenCalledWith(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

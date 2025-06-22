@@ -28,10 +28,10 @@ describe('HistoryPage', () => {
 
   it('shows an error message if fetch fails', async () => {
     mockUseSession.mockReturnValue({ data: { user: { email: 'test@test.com' } }, status: 'authenticated' })
-    ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to fetch'))
+    ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to fetch translation history'))
     render(<HistoryPage />)
     await waitFor(() => {
-        expect(screen.getByText(/Failed to fetch/i)).toBeInTheDocument()
+        expect(screen.getByText(/Failed to fetch translation history/i)).toBeInTheDocument()
     })
   })
 
@@ -51,7 +51,7 @@ describe('HistoryPage', () => {
     mockUseSession.mockReturnValue({ data: { user: { email: 'test@test.com' } }, status: 'authenticated' })
     ;(global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockTranslations),
+      json: () => Promise.resolve({ translations: mockTranslations }),
     })
 
     render(<HistoryPage />)
@@ -65,7 +65,7 @@ describe('HistoryPage', () => {
     mockUseSession.mockReturnValue({ data: { user: { email: 'test@test.com' } }, status: 'authenticated' })
     ;(global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([]),
+      json: () => Promise.resolve({ translations: [] }),
     })
 
     render(<HistoryPage />)
