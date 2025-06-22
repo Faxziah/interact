@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { groq } from "@ai-sdk/groq"
 import { z } from "zod"
 
 const translateSchema = z.object({
@@ -36,29 +36,47 @@ export async function POST(request: NextRequest) {
     Provide only the translation without any additional commentary or explanation.
     Maintain the original formatting and structure of the text.`
 
-    const { text: translatedText } = await generateText({
-      model: openai("gpt-4o"),
-      system: systemPrompt,
-      prompt: text,
-      maxTokens: 2000,
-      temperature: style === "creative" ? 0.7 : 0.3,
-    })
+    let translatedText: string
+    try {
+      console.log("Attempting to get translation from AI service...")
+      const { text: aiResult } = await generateText({
+        model: groq("llama3-70b-8192"),
+        system: systemPrompt,
+        prompt: text,
+        maxTokens: 2000,
+        temperature: style === "creative" ? 0.7 : 0.3,
+      })
+      translatedText = aiResult
+      console.log("Successfully got translation from AI service.")
+    } catch (aiError) {
+      console.error("Error calling AI service:", aiError)
+      throw aiError // Re-throw to be caught by the main handler
+    }
 
     // Save translation to our backend
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/translations`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-      body: JSON.stringify({
-        originalText: text,
-        translatedText,
-        sourceLanguage: fromLanguage || "auto",
-        targetLanguage: toLanguage,
-        style,
-      }),
-    })
+    try {
+      console.log("Attempting to save translation to backend...")
+      const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/translations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({
+          originalText: text,
+          translatedText,
+          sourceLanguage: fromLanguage || "auto",
+          targetLanguage: toLanguage,
+          style,
+        }),
+      })
+
+      if (!saveResponse.ok) {
+        console.error("Backend failed to save translation. Status:", saveResponse.status)
+      }
+    } catch (saveError) {
+      console.error("Error saving translation to backend:", saveError)
+    }
 
     return NextResponse.json({
       translatedText,
@@ -67,7 +85,7 @@ export async function POST(request: NextRequest) {
       style,
     })
   } catch (error) {
-    console.error("Translation error:", error)
+    console.error("Error in /api/translate handler:", error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request data", details: error.errors }, { status: 400 })

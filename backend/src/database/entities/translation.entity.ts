@@ -17,45 +17,46 @@ export class Translation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
+  @Column('uuid', { name: 'user_id' })
   userId: string;
 
   @ManyToOne(() => User, (user) => user.translations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column('text')
+  @Column('text', { name: 'original_text' })
   originalText: string;
 
-  @Column('text')
+  @Column('text', { name: 'translated_text' })
   translatedText: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, name: 'source_language' })
   sourceLanguage: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, name: 'target_language' })
   targetLanguage: string;
 
   @Column({
     type: 'varchar',
     length: 50,
     default: 'formal',
+    name: 'translation_style',
   })
   translationStyle: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, name: 'ai_model_used' })
   aiModelUsed: string;
 
-  @Column()
+  @Column({ name: 'character_count' })
   characterCount: number;
 
-  @Column()
-  processingTimeMs: number;
+  @Column({ name: 'processing_time_ms', nullable: true })
+  processingTimeMs?: number;
 
-  @Column({ default: false })
+  @Column({ default: false, name: 'is_favorite' })
   isFavorite: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   constructor(partial: Partial<Translation>) {

@@ -12,8 +12,8 @@ interface Translation {
   id: string
   originalText: string
   translatedText: string
-  sourceLang: string
-  targetLang: string
+  sourceLanguage: string
+  targetLanguage: string
   createdAt: string
 }
 
@@ -34,7 +34,7 @@ export default function HistoryPage() {
             throw new Error('Failed to fetch translation history')
           }
           const data = await response.json()
-          setTranslations(data)
+          setTranslations(data.translations)
         } catch (err) {
           setError(err instanceof Error ? err.message : 'An unknown error occurred')
         } finally {
@@ -96,22 +96,22 @@ export default function HistoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Original</TableHead>
-                <TableHead>Translated</TableHead>
-                <TableHead className="hidden md:table-cell">From</TableHead>
-                <TableHead className="hidden md:table-cell">To</TableHead>
-                <TableHead className="text-right">Date</TableHead>
+                <TableHead className={'text-center'}>Original</TableHead>
+                <TableHead className={'text-center'}>Translated</TableHead>
+                <TableHead className="text-center md:table-cell">From</TableHead>
+                <TableHead className="text-center md:table-cell">To</TableHead>
+                <TableHead className="text-center">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {translations.length > 0 ? (
                 translations.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell className="font-medium truncate max-w-xs">{t.originalText}</TableCell>
-                    <TableCell className="truncate max-w-xs">{t.translatedText}</TableCell>
-                    <TableCell className="hidden md:table-cell">{t.sourceLang.toUpperCase()}</TableCell>
-                    <TableCell className="hidden md:table-cell">{t.targetLang.toUpperCase()}</TableCell>
-                    <TableCell className="text-right">{new Date(t.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium max-w-xs align-top">{t.originalText}</TableCell>
+                    <TableCell className="font-medium max-w-xs align-top">{t.translatedText}</TableCell>
+                    <TableCell className="text-center md:table-cell">{t.sourceLanguage}</TableCell>
+                    <TableCell className="text-center md:table-cell">{t.targetLanguage}</TableCell>
+                    <TableCell className="text-center">{new Date(t.createdAt).toLocaleString()}</TableCell>
                   </TableRow>
                 ))
               ) : (

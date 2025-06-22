@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const translations = await apiResponse.json();
 
-    return NextResponse.json({ translations });
+    return NextResponse.json(translations);
   } catch (error) {
     console.error("Error fetching translations:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

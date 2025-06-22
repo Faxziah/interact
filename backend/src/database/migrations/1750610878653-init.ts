@@ -73,13 +73,18 @@ export class Init1750610878653 implements MigrationInterface {
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "translations" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-                "user_id" uuid,
+                "user_id" uuid NOT NULL,
                 "original_text" text NOT NULL,
                 "translated_text" text NOT NULL,
-                "from_language" character varying(10) NOT NULL,
-                "to_language" character varying(10) NOT NULL,
-                "style" character varying(20) NOT NULL DEFAULT 'formal',
-                CONSTRAINT "PK_aca248c72ae1fb2390f1bf4cd87" PRIMARY KEY ("id")
+                "source_language" character varying(50) NOT NULL,
+                "target_language" character varying(50) NOT NULL,
+                "translation_style" character varying(50) NOT NULL DEFAULT 'formal',
+                "ai_model_used" character varying(50) NOT NULL,
+                "character_count" integer NOT NULL,
+                "processing_time_ms" integer,
+                "is_favorite" boolean NOT NULL DEFAULT false,
+                "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+                CONSTRAINT "PK_translations_id" PRIMARY KEY ("id")
             )
         `);
 
@@ -97,7 +102,7 @@ export class Init1750610878653 implements MigrationInterface {
         `);
 
         // Create indexes
-        await queryRunner.query(`CREATE INDEX "idx_translations_user_id" ON "translations" ("user_id")`);
+        await queryRunner.query(`CREATE INDEX "idx_translations_user_id_created_at" ON "translations" ("user_id", "created_at")`);
         await queryRunner.query(`CREATE INDEX "idx_users_email" ON "users" ("email")`);
 
         // // Insert default languages
