@@ -63,7 +63,7 @@ export class AuthService {
     const user = this.userRepository.create({
       email,
       name,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -85,14 +85,14 @@ export class AuthService {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .where('user.email = :email', { email })
-      .addSelect('user.password')
+      .addSelect('user.passwordHash')
       .getOne();
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -126,12 +126,12 @@ export class AuthService {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .where('user.email = :email', { email })
-      .addSelect('user.password')
+      .addSelect('user.passwordHash')
       .getOne();
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (user && (await bcrypt.compare(password, user.passwordHash))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
+      const { passwordHash, ...result } = user;
       return result;
     }
 
@@ -204,7 +204,7 @@ export class AuthService {
       );
     }
 
-    user.password = await bcrypt.hash(password, 12);
+    user.passwordHash = await bcrypt.hash(password, 12);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
 

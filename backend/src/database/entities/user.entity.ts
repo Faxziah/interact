@@ -22,11 +22,8 @@ export class User {
   @Column({ nullable: true })
   name?: string;
 
-  @Column({ select: false, nullable: true })
-  password?: string;
-
-  @Column({ nullable: true })
-  avatar?: string;
+  @Column({ name: 'password_hash', select: false, nullable: true })
+  passwordHash?: string;
 
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;

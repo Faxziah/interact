@@ -12,6 +12,8 @@ export class Init1750610878653 implements MigrationInterface {
                 "name" character varying(255),
                 "password_hash" character varying(255),
                 "provider" character varying(50) NOT NULL DEFAULT 'credentials',
+                "reset_password_token" character varying(255),
+                "reset_password_expires" TIMESTAMP WITH TIME ZONE,
                 "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"),
