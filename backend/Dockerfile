@@ -32,11 +32,12 @@ RUN npm run build
 
 # Production stage
 FROM base AS production
-WORKDIR /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs
+
+WORKDIR /app
 
 # Copy built application and dependencies
 COPY --from=deps /app/node_modules ./node_modules
@@ -53,4 +54,4 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-CMD ["npm", "run", "start:prod"] 
+CMD ["npm", "run", "start:prod"]

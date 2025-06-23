@@ -6,106 +6,79 @@ services:
     image: postgres:15-alpine
     container_name: interact-postgres
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-interact}
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    env_file:
+      - ./backend/.env
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/src/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
-      interval: 10s
-      timeout: 5s
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-interact}" ]
+      interval: 2s
+      timeout: 1s
       retries: 5
     networks:
       - interact-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+
+  # Migration Service
+  migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: interact-migration
+    command: npm run migration:run:prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    networks:
+      - interact-network
+    restart: on-failure
 
   # Backend API (NestJS)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: ${NODE_ENV:-development}
+      target: development
     container_name: interact-backend
+    command: npm run start:dev
     restart: unless-stopped
     env_file:
       - ./backend/.env
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: ${BACKEND_PORT:-3001}
-      POSTGRES_HOST: postgres
-      POSTGRES_DB: ${POSTGRES_DB:-interact}
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
-      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
-      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60}
-      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-10}
     ports:
-      - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - "8080:3001"
     depends_on:
       postgres:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     networks:
       - interact-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${BACKEND_PORT:-3001}/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
 
-  # Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: ${NODE_ENV:-development}
+      target: development
     container_name: interact-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
     networks:
       - interact-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
-    stdin_open: true
-    tty: true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:

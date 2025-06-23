@@ -178,7 +178,7 @@ export default function HomePage() {
       console.error("Translation error:", error)
       toast({
         title: "Error",
-        description: "Failed to translate text. Please try again.",
+        description: "Failed to translate text. Please try again. If the problem persists, disable your VPN.",
         variant: "destructive",
       })
     } finally {
@@ -314,10 +314,6 @@ export default function HomePage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold text-gray-700">Original Text</label>
-                    <div className="flex items-center space-x-2">
-                      <Volume2 className="h-4 w-4 text-gray-400" />
-                      <span className="text-xs text-gray-500">{inputText.length}/5000</span>
-                    </div>
                   </div>
                   <div className="relative">
                     <Textarea
@@ -344,7 +340,6 @@ export default function HomePage() {
                           <Copy className="h-3 w-3" />
                         </Button>
                       )}
-                      <Volume2 className="h-4 w-4 text-gray-400" />
                     </div>
                   </div>
                   <div className="relative">

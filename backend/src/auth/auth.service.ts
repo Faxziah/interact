@@ -226,9 +226,4 @@ export class AuthService {
       accessToken,
     };
   }
-
-  private async sendPasswordResetEmail(user: User, token: string) {
-    const resetLink = `http://localhost:3000/auth/reset-password?token=${token}`;
-    // ... existing code ...
-  }
-} 
+}

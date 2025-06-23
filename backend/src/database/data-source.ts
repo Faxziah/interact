@@ -18,9 +18,6 @@ export const AppDataSource = new DataSource({
   migrations: ['dist/database/migrations/*.js'],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
-  ssl:
-    process.env.NODE_ENV === 'production'
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: false,
   namingStrategy: new SnakeNamingStrategy(),
 });

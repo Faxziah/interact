@@ -50,7 +50,7 @@ describe('SignUpPage', () => {
     
     // Check if fetch was called for registration
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${process.env.NEXT_PUBLIC_REACT_APP_API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

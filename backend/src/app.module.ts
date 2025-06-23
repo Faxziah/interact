@@ -28,7 +28,7 @@ import { TranslationStylesModule } from './translation-styles/translation-styles
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('POSTGRES_HOST', 'localhost'),
+        host: configService.get<string>('POSTGRES_HOST', 'postgres'),
         port: configService.get<number>('POSTGRES_PORT', 5432),
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
@@ -36,7 +36,7 @@ import { TranslationStylesModule } from './translation-styles/translation-styles
         entities: [User, Translation, UserSettings, Language, TranslationStyle, Model],
         synchronize: configService.get<string>('NODE_ENV') === 'development',
         logging: configService.get<string>('NODE_ENV') === 'development',
-        ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+        ssl: false,
         namingStrategy: new SnakeNamingStrategy(),
       }),
       inject: [ConfigService],

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/models`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/languages`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
